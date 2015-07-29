@@ -8,6 +8,7 @@ import (
 
 var (
 	skipList = NewSkipList(4)
+	datas    = map[int64]*TestData{}
 )
 
 type TestData struct {
@@ -16,7 +17,13 @@ type TestData struct {
 }
 
 func (this *TestData) Less(data Data) bool {
-	return this.Value < data.(*TestData).Value
+	if this.Value < data.(*TestData).Value {
+		return true
+	}
+	if this.Value == data.(*TestData).Value && this.Id < data.(*TestData).Id {
+		return true
+	}
+	return false
 }
 
 func (this *TestData) Equal(data Data) bool {
@@ -24,7 +31,6 @@ func (this *TestData) Equal(data Data) bool {
 }
 
 func init() {
-	datas := map[int64]*TestData{}
 	for _, val := range rand.Perm(10) {
 		data := &TestData{
 			Id:    int64(val),
@@ -46,12 +52,27 @@ func init() {
 			skipList.Set(data, nil)
 		}
 	}
+
+	fmt.Println("fuck")
+	skipList.Set(&TestData{
+		Id:    1,
+		Value: 10,
+	}, datas[1])
 }
 
 func TestPrint(t *testing.T) {
 	fmt.Println("print")
 	skipList.Print(func(data Data) {
+		fmt.Print(data.(*TestData).Id)
+		fmt.Print(":")
 		fmt.Print(data.(*TestData).Value)
 	})
 	fmt.Println("===============")
+}
+
+func TestDel(t *testing.T) {
+	fmt.Println("del")
+	skipList.Del(datas[1])
+	fmt.Println("===============")
+	TestPrint(t)
 }

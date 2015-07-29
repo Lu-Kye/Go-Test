@@ -12,12 +12,6 @@ import (
 //
 // sorted as increasment
 //
-// To iterate over a skip list (where s is a
-// *SkipList):
-//
-//  for i := s.Iterator(); i.Next(); {
-//	// do something with i.Key() and i.Value()
-//  }
 type SkipList struct {
 	head     *Node // first node of skip list
 	end      *Node // last node of skip list
@@ -134,6 +128,22 @@ func (this *SkipList) del(oldNode *Node, lNodes []*Node) {
 		}
 	}
 	this.length--
+	fmt.Println("delete success")
+}
+
+// delete an old data if it exists
+func (this *SkipList) Del(old Data) {
+	maxLevel := this.getMaxLevel()
+
+	//find node that node.next.data >= data for each level
+	lNodes := make([]*Node, maxLevel, maxLevel)
+	lWidths := make([]int64, maxLevel, maxLevel)
+
+	//find exist node if found then delete it first
+	oldNode := this.getLNodes(old, lNodes, lWidths)
+	if oldNode != nil && oldNode.data.Equal(old) {
+		this.del(oldNode, lNodes)
+	}
 }
 
 // @data is the new data or will update data into the skip list
@@ -142,22 +152,17 @@ func (this *SkipList) del(oldNode *Node, lNodes []*Node) {
 // then you should record the old one and input it into Set
 // by @old
 func (this *SkipList) Set(data Data, old Data) {
+	//find exist node if found then delete it first
+	if old != nil {
+		this.Del(old)
+	}
+
 	maxLevel := this.getMaxLevel()
 
 	//find node that node.next.data >= data for each level
 	lNodes := make([]*Node, maxLevel, maxLevel)
 	lWidths := make([]int64, maxLevel, maxLevel)
-
-	//find exist node if found then delete it first
-	var oldNode *Node
-	if old == nil {
-		oldNode = this.getLNodes(data, lNodes, lWidths)
-	} else {
-		oldNode = this.getLNodes(old, lNodes, lWidths)
-	}
-	if oldNode != nil && oldNode.data.Equal(data) {
-		this.del(oldNode, lNodes)
-	}
+	this.getLNodes(data, lNodes, lWidths)
 
 	level := this.randomLevel() + 1
 	newNode := NewNode(level, this.getMaxLevel())
